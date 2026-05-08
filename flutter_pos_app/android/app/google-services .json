@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "273491009740",
+    "project_id": "omnicommerce-pos",
+    "storage_bucket": "omnicommerce-pos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:273491009740:android:82c2806ee453eacde06269",
+        "android_client_info": {
+          "package_name": "com.hexerve.solutions.omniCommerceapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "273491009740-uhdgs8b3hkau9684mohm2ac37kbssria.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hexerve.solutions.omniCommerceapp",
+            "certificate_hash": "ff508d416d3fd288a6916d186878046cbffbc72b"
+          }
+        },
+        {
+          "client_id": "273491009740-m8vc7t5ebl7pfv9o4l2c0tn6qm63l0m4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBApIXP2MrWRdBGP7YSbg_NydDIZ_GSvmA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "273491009740-m8vc7t5ebl7pfv9o4l2c0tn6qm63l0m4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
