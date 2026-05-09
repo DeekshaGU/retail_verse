@@ -261,11 +261,62 @@ class _SaCustomDomainsScreenState extends ConsumerState<SaCustomDomainsScreen> {
     );
   }
 
+  Future<void> _verifyDomain(String id) async {
+    try {
+      await _superAdminService.verifyCustomDomain(id);
+      _showSuccess('Domain verified successfully');
+      _loadData();
+    } catch (e) {
+      _showError('Verification failed: $e');
+    }
+  }
+
+  Future<void> _activateDomain(String id) async {
+    try {
+      await _superAdminService.activateCustomDomain(id);
+      _showSuccess('Domain activated');
+      _loadData();
+    } catch (e) {
+      _showError('Activation failed: $e');
+    }
+  }
+
+  Future<void> _deleteDomain(String id) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Delete Domain?'),
+        content: const Text('This will disconnect the domain from the business.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete', style: TextStyle(color: AppColors.error))),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      await _superAdminService.deleteCustomDomain(id);
+      _showSuccess('Domain deleted');
+      _loadData();
+    } catch (e) {
+      _showError('Delete failed: $e');
+    }
+  }
+
   Widget _buildModernDomainCard(Map<String, dynamic> data) {
     final domain = data['domain'] ?? 'Unknown';
-    final status = data['status'] ?? 'pending';
-    final active = status == 'active';
+    final status = data['status']?.toString().toLowerCase() ?? 'pending';
+    final id = data['id']?.toString() ?? data['_id']?.toString() ?? '';
     
+    final isPending = status == 'pending';
+    final isVerified = status == 'verified';
+    final isActive = status == 'active';
+    
+    Color statusColor = AppColors.warning;
+    if (isVerified) statusColor = Colors.blue;
+    if (isActive) statusColor = AppColors.success;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -275,31 +326,58 @@ class _SaCustomDomainsScreenState extends ConsumerState<SaCustomDomainsScreen> {
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
         border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: (active ? AppColors.success : AppColors.warning).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.language_rounded, color: active ? AppColors.success : AppColors.warning, size: 24),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.language_rounded, color: statusColor, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(domain, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900)),
+                    Text(status.toUpperCase(), style: AppTypography.labelSmall.copyWith(color: statusColor, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => _deleteDomain(id),
+                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                style: IconButton.styleFrom(backgroundColor: AppColors.error.withOpacity(0.05)),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          if (!isActive) ...[
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            Row(
               children: [
-                Text(domain, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900)),
-                Text(status.toUpperCase(), style: AppTypography.labelSmall.copyWith(color: active ? AppColors.success : AppColors.warning, fontWeight: FontWeight.bold)),
+                if (isPending)
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _verifyDomain(id),
+                      child: const Text('Verify DNS'),
+                    ),
+                  ),
+                if (isVerified)
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => _activateDomain(id),
+                      child: const Text('Activate Domain'),
+                    ),
+                  ),
               ],
             ),
-          ),
-          IconButton(
-            onPressed: () {}, // Delete logic from base
-            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
-            style: IconButton.styleFrom(backgroundColor: AppColors.error.withOpacity(0.05)),
-          ),
+          ],
         ],
       ),
     );

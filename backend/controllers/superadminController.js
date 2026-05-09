@@ -238,7 +238,7 @@ exports.addCustomDomain = async (req, res) => {
 
 exports.verifyCustomDomain = async (req, res) => {
   try {
-    const domain = await CustomDomain.findByIdAndUpdate(req.params.id, { isVerified: true }, { new: true });
+    const domain = await CustomDomain.findByIdAndUpdate(req.params.id, { status: 'verified' }, { new: true });
     res.status(200).json({ success: true, data: domain });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

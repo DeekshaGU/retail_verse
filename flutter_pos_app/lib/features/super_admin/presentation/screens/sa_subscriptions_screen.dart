@@ -81,10 +81,13 @@ class _SaSubscriptionsScreenState extends State<SaSubscriptionsScreen> with Sing
                   Text('Manage revenue and client access', style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
-                child: const Icon(Icons.auto_graph_rounded, color: AppColors.primary, size: 24),
+              IconButton(
+                onPressed: () {}, // Future: Open detailed analytics
+                icon: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+                  child: const Icon(Icons.auto_graph_rounded, color: AppColors.primary, size: 24),
+                ),
               ),
             ],
           ),
@@ -227,26 +230,32 @@ class _SaSubscriptionsScreenState extends State<SaSubscriptionsScreen> with Sing
 
   Widget _buildMetricCard(String label, String value, IconData icon, Color color) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: () {}, // Future: Filter by status or show revenue details
           borderRadius: BorderRadius.circular(24),
-          boxShadow: AppColors.shadowSubtle,
-          border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-              child: Icon(icon, color: color, size: 16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
             ),
-            const SizedBox(height: 12),
-            Text(value, style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, fontSize: 18)),
-            Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontWeight: FontWeight.bold)),
-          ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                  child: Icon(icon, color: color, size: 16),
+                ),
+                const SizedBox(height: 12),
+                Text(value, style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, fontSize: 18), overflow: TextOverflow.ellipsis),
+                Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
         ),
       ),
     );
