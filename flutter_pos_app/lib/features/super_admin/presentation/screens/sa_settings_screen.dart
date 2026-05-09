@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:retail_verse_pos/core/theme/app_colors.dart';
 import 'package:retail_verse_pos/core/theme/app_typography.dart';
+import 'package:retail_verse_pos/data/remote/super_admin_service.dart';
 import 'package:retail_verse_pos/features/auth/providers/auth_provider.dart';
 import 'package:retail_verse_pos/features/dashboard/presentation/widgets/dashboard_widgets.dart';
 
@@ -117,6 +118,27 @@ class SaSettingsScreen extends ConsumerWidget {
                     title: 'System Health Audit',
                     subtitle: 'Infrastructure & security logs',
                     onTap: () {},
+                  ),
+                  _SettingsTile(
+                    icon: Icons.build_circle_rounded,
+                    title: 'Repair Database Indexes',
+                    subtitle: 'Fix duplicate client ID collisions',
+                    onTap: () async {
+                      try {
+                        final msg = await SuperAdminService().fixBusinessesData();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(msg), backgroundColor: AppColors.success),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+                          );
+                        }
+                      }
+                    },
                   ),
                 ]),
                 const SizedBox(height: 48),

@@ -531,4 +531,27 @@ class SuperAdminService {
       );
     }
   }
+
+  Future<String> fixBusinessesData() async {
+    final token = await _token();
+    final res = await _client
+        .get(
+          ApiResponseHandler.uri('/super-admin/fix-data'),
+          headers: ApiResponseHandler.jsonHeaders(token: token),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    final decoded = ApiResponseHandler.decodeJsonResponse(
+      res,
+      action: 'fix business data',
+    );
+    if (res.statusCode != 200) {
+      throw ApiResponseHandler.errorFromResponse(
+        res,
+        action: 'fix business data',
+        decodedBody: decoded,
+      );
+    }
+    return decoded['message']?.toString() ?? 'Fixed successfully';
+  }
 }
