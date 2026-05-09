@@ -402,7 +402,7 @@ class _SaCustomDomainsScreenState extends ConsumerState<SaCustomDomainsScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildDnsField('CNAME', domain['dnsName'] ?? 'store', domain['dnsValue'] ?? 'proxy.retailverse.com'),
+          _buildDnsField('CNAME', domain['dnsName'] ?? 'store', domain['dnsValue'] ?? 'app.retailverse.in'),
         ],
       ),
     );
