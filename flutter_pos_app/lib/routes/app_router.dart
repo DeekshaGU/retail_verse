@@ -36,6 +36,8 @@ import '../features/super_admin/presentation/screens/sa_custom_domains_screen.da
 import '../features/super_admin/presentation/screens/sa_logs_screen.dart';
 import '../features/super_admin/presentation/screens/sa_stores_performance_screen.dart';
 import '../features/super_admin/presentation/screens/sa_add_business_screen.dart';
+import '../features/super_admin/presentation/screens/sa_business_details_screen.dart';
+import '../features/super_admin/presentation/screens/sa_support_chat_screen.dart';
 import '../features/dashboard/presentation/widgets/dashboard_widgets.dart';
 import '../features/dashboard/presentation/screens/sales_details_screen.dart';
 import '../features/dashboard/presentation/screens/avg_sale_details_screen.dart';
@@ -105,11 +107,28 @@ final GoRouter appRouter = GoRouter(
           path: '/super-admin/stores-performance',
           builder: (context, state) => const SaStoresPerformanceScreen(),
         ),
+        GoRoute(
+          path: '/super-admin/support-chat',
+          builder: (context, state) {
+            final params = state.extra as Map<String, dynamic>? ?? {};
+            return SaSupportChatScreen(
+              ticketSubject: params['subject'] ?? 'Support Request',
+              initialMessage: params['message'] ?? '',
+            );
+          },
+        ),
       ],
     ),
     GoRoute(
       path: '/super-admin/businesses/add',
       builder: (context, state) => const SaAddBusinessScreen(),
+    ),
+    GoRoute(
+      path: '/super-admin/businesses/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return SaBusinessDetailsScreen(businessId: id);
+      },
     ),
 
     ShellRoute(

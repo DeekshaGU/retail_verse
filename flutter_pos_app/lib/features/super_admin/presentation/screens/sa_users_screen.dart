@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:retail_verse_pos/core/theme/app_colors.dart';
 import 'package:retail_verse_pos/core/theme/app_typography.dart';
-import 'package:retail_verse_pos/core/utils/validators.dart';
-import 'package:retail_verse_pos/data/remote/admin_users_service.dart';
-import 'package:retail_verse_pos/core/network/api_exception.dart';
 import 'package:retail_verse_pos/data/remote/super_admin_service.dart';
-import 'package:retail_verse_pos/features/dashboard/presentation/widgets/dashboard_widgets.dart';
 
 class SaUsersScreen extends StatefulWidget {
   const SaUsersScreen({super.key});
@@ -38,18 +34,20 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openCreateUserDialog,
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.person_add_rounded, color: Colors.white),
+        label: const Text('Add Member', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
       body: Column(
         children: [
           // ── PREMIUM INTEGRATED HEADER ──────────────────
           Container(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF1E1B4B), Color(0xFF312E81)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
+              color: AppColors.background,
             ),
             child: SafeArea(
               bottom: false,
@@ -57,39 +55,26 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Teams', style: AppTypography.headlineSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
-                      IconButton(
-                        onPressed: _openCreateUserDialog,
-                        icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.person_add_rounded, color: Colors.white, size: 24),
-                        ),
-                      ),
-                    ],
-                  ),
+                  Text('Teams', style: AppTypography.headlineSmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w900)),
+                  Text('Manage platform administrators & staff', style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
                   const SizedBox(height: 24),
                   Container(
                     height: 56,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.08),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      boxShadow: AppColors.shadowSubtle,
+                      border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
                     ),
                     child: TextField(
                       controller: _searchC,
                       onChanged: (v) => setState(() => _searchQ = v.trim().toLowerCase()),
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: AppColors.textPrimary),
                       decoration: InputDecoration(
                         hintText: 'Search by name or email...',
-                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                        prefixIcon: Icon(Icons.search_rounded, color: Colors.white.withOpacity(0.7)),
+                        hintStyle: TextStyle(color: AppColors.textTertiary.withOpacity(0.5)),
+                        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textTertiary),
                         border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                     ),
@@ -107,7 +92,7 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
                   return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                 }
                 if (snap.hasError) {
-                  return Center(child: Text('Error: ${snap.error}'));
+                  return _buildErrorState(snap.error.toString());
                 }
 
                 final users = snap.data ?? [];
@@ -142,84 +127,105 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
     final email = u['email']?.toString() ?? '';
     final role = u['role']?.toString() ?? 'user';
     final active = u['isActive'] == true;
-    final title = name.isEmpty ? email : name;
+    final initials = name.isNotEmpty ? name[0].toUpperCase() : (email.isNotEmpty ? email[0].toUpperCase() : '?');
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: AppColors.shadowSubtle,
         border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 2),
-                ),
-                child: CircleAvatar(
-                  radius: constraints.maxWidth > 300 ? 28 : 24,
-                  backgroundColor: AppColors.primary.withOpacity(0.08),
-                  child: Text(
-                    title.isNotEmpty ? title[0].toUpperCase() : '?',
-                    style: AppTypography.headlineSmall.copyWith(
-                      fontWeight: FontWeight.w900, 
-                      color: AppColors.primary,
-                      fontSize: constraints.maxWidth > 300 ? 24 : 18,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(28),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(28),
+          onTap: () {}, // Future detail view
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary.withOpacity(0.1), AppColors.primary.withOpacity(0.05)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      initials,
+                      style: AppTypography.titleMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(title, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
-                    ),
-                    Text(email, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _buildTag(role.toUpperCase(), AppColors.primary, Icons.verified_user_rounded),
-                        _buildTag(active ? 'ACTIVE' : 'INACTIVE', active ? AppColors.success : AppColors.error, active ? Icons.check_circle_rounded : Icons.cancel_rounded),
-                      ],
-                    ),
-                  ],
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name.isNotEmpty ? name : 'Unnamed Member', style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                      Text(email, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _buildRoleBadge(role),
+                          const SizedBox(width: 8),
+                          _buildStatusIndicator(active),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              _buildActionMenu(u, active, email),
-            ],
-          );
-        },
+                _buildActionMenu(u, active, email),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildTag(String text, Color color, IconData icon) {
+  Widget _buildRoleBadge(String role) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08), 
+        color: AppColors.primary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Text(
+        role.toUpperCase(),
+        style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 10),
+      ),
+    );
+  }
+
+  Widget _buildStatusIndicator(bool active) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: (active ? Colors.green : Colors.grey).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: active ? Colors.green : Colors.grey, shape: BoxShape.circle),
+          ),
           const SizedBox(width: 6),
-          Text(text, style: AppTypography.labelSmall.copyWith(color: color, fontWeight: FontWeight.w900, fontSize: 10)),
+          Text(
+            active ? 'ONLINE' : 'INACTIVE',
+            style: TextStyle(color: active ? Colors.green : Colors.grey, fontSize: 10, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
@@ -227,15 +233,34 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
 
   Widget _buildActionMenu(Map<String, dynamic> u, bool active, String email) {
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert_rounded, color: AppColors.textTertiary),
+      icon: const Icon(Icons.more_horiz_rounded, color: AppColors.textTertiary),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       onSelected: (v) => _handleMenuAction(v, u, active, email),
       itemBuilder: (ctx) => [
-        PopupMenuItem(value: 'toggle', child: Text(active ? 'Deactivate Member' : 'Activate Member')),
+        PopupMenuItem(
+          value: 'toggle',
+          child: Row(
+            children: [
+              Icon(active ? Icons.block_rounded : Icons.check_circle_outline_rounded, size: 18),
+              const SizedBox(width: 12),
+              Text(active ? 'Suspend Member' : 'Activate Member'),
+            ],
+          ),
+        ),
         const PopupMenuDivider(),
-        const PopupMenuItem(value: 'role:admin', child: Text('Assign Admin Role')),
-        const PopupMenuItem(value: 'role:cashier', child: Text('Assign Cashier Role')),
+        const PopupMenuItem(value: 'role:admin', child: Text('Promote to Admin')),
+        const PopupMenuItem(value: 'role:cashier', child: Text('Assign Cashier')),
         const PopupMenuDivider(),
-        PopupMenuItem(value: 'delete', child: Text('Remove from Team', style: TextStyle(color: AppColors.error))),
+        PopupMenuItem(
+          value: 'delete', 
+          child: Row(
+            children: [
+              const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 18),
+              const SizedBox(width: 12),
+              Text('Remove Member', style: TextStyle(color: AppColors.error)),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -256,7 +281,14 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
       }
       if (mounted) {
         setState(() => _f = _svc.listUsers());
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Updated successfully'), backgroundColor: AppColors.success));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Team updated successfully'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
@@ -267,11 +299,16 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Remove member?'),
-        content: Text('Access for $email will be revoked immediately.'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Text('Remove from Team?'),
+        content: Text('Access for $email will be permanently revoked.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), style: FilledButton.styleFrom(backgroundColor: AppColors.error), child: const Text('Remove')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            child: const Text('Remove'),
+          ),
         ],
       ),
     );
@@ -288,24 +325,31 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: const Text('Add Team Member'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          title: Text('Invite Member', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w900)),
           content: Form(
             key: formKey,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildField(nameC, 'Name', Icons.person_outline),
-                  const SizedBox(height: 12),
-                  _buildField(emailC, 'Email', Icons.email_outlined),
-                  const SizedBox(height: 12),
-                  _buildField(passC, 'Temporary Password', Icons.lock_outline, obscure: true),
+                  _buildModernField(nameC, 'Full Name', Icons.person_rounded),
                   const SizedBox(height: 16),
+                  _buildModernField(emailC, 'Work Email', Icons.email_rounded),
+                  const SizedBox(height: 16),
+                  _buildModernField(passC, 'Initial Password', Icons.lock_rounded, obscure: true),
+                  const SizedBox(height: 24),
                   DropdownButtonFormField<String>(
                     value: role,
                     items: _assignableRoles.map((r) => DropdownMenuItem(value: r, child: Text(r.toUpperCase()))).toList(),
                     onChanged: (v) => setLocal(() => role = v!),
-                    decoration: const InputDecoration(labelText: 'System Role', border: OutlineInputBorder()),
+                    decoration: InputDecoration(
+                      labelText: 'Assigned Role',
+                      prefixIcon: const Icon(Icons.shield_rounded, color: AppColors.primary),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+                      filled: true,
+                      fillColor: AppColors.backgroundSecondary.withOpacity(0.5),
+                    ),
                   ),
                 ],
               ),
@@ -313,7 +357,11 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Create')),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: FilledButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              child: const Text('Send Invitation'),
+            ),
           ],
         ),
       ),
@@ -329,11 +377,17 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
     }
   }
 
-  Widget _buildField(TextEditingController ctrl, String label, IconData icon, {bool obscure = false}) {
+  Widget _buildModernField(TextEditingController ctrl, String label, IconData icon, {bool obscure = false}) {
     return TextFormField(
       controller: ctrl,
       obscureText: obscure,
-      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon), border: const OutlineInputBorder()),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: AppColors.primary),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+        filled: true,
+        fillColor: AppColors.backgroundSecondary.withOpacity(0.5),
+      ),
     );
   }
 
@@ -342,10 +396,35 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.people_outline_rounded, size: 80, color: AppColors.textTertiary.withOpacity(0.2)),
-          const SizedBox(height: 16),
-          Text('No team members found', style: AppTypography.headlineSmall.copyWith(color: AppColors.textTertiary)),
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), shape: BoxShape.circle),
+            child: Icon(Icons.group_add_rounded, size: 80, color: AppColors.primary.withOpacity(0.2)),
+          ),
+          const SizedBox(height: 24),
+          Text('Your team is empty', style: AppTypography.headlineSmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+          Text('Invite members to manage the platform.', style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline_rounded, size: 64, color: AppColors.error),
+            const SizedBox(height: 16),
+            Text('Oops! Something went wrong', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(error, textAlign: TextAlign.center, style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
+            const SizedBox(height: 24),
+            FilledButton(onPressed: () => setState(() => _f = _svc.listUsers()), child: const Text('Try Again')),
+          ],
+        ),
       ),
     );
   }

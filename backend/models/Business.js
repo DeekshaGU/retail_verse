@@ -47,6 +47,9 @@ const businessSchema = new mongoose.Schema(
       enum: ["active", "expired"],
       default: "active",
     },
+    subscriptionExpiry: {
+      type: Date,
+    },
     businessId: {
       type: String,
       unique: true,

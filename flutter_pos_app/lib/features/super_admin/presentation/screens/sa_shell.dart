@@ -106,47 +106,56 @@ class _SuperAdminShellState extends ConsumerState<SuperAdminShell> {
     final email = user['email']?.toString() ?? 'Super Admin';
     final bottomIdx = _bottomIndexForPath(path);
 
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: AppColors.background,
-      drawer: _SuperAdminDrawer(
-        email: email, 
-        onStore: () => _openClientStorePicker(context), 
-        onPick: (p) => context.go(p)
-      ),
-      appBar: path == '/super-admin/dashboard' ? null : _buildModernAppBar(),
-      floatingActionButton: const _BlinkingSupportFAB(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: Stack(
-        children: [
-          widget.child,
-          // Floating Bottom Navigation
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 24,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width > 600 ? 500 : MediaQuery.of(context).size.width - 40,
-                ),
-                child: _ModernFloatingNavBar(
-                  selectedIndex: bottomIdx,
-                  onDestinationSelected: (i) => i == 3 ? _openMoreSheet(context) : context.go(_kPrimaryShellRoutes[i].path),
-                  items: [
-                    ..._kPrimaryShellRoutes.map((r) => _ModernNavItem(icon: r.icon, selectedIcon: r.selectedIcon, label: r.label)),
-                    const _ModernNavItem(icon: Icons.more_horiz_rounded, selectedIcon: Icons.apps_rounded, label: 'More'),
-                  ],
+    return PopScope(
+      canPop: path == '/super-admin/dashboard',
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.go('/super-admin/dashboard');
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: AppColors.background,
+        drawer: _SuperAdminDrawer(
+          email: email, 
+          onStore: () => _openClientStorePicker(context), 
+          onPick: (p) => context.go(p)
+        ),
+        appBar: path == '/super-admin/dashboard' ? null : _buildModernAppBar(),
+        floatingActionButton: const _BlinkingSupportFAB(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        body: Stack(
+          children: [
+            widget.child,
+            // Floating Bottom Navigation - ONLY on Dashboard
+            if (path == '/super-admin/dashboard')
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 24,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width > 600 ? 500 : MediaQuery.of(context).size.width - 40,
+                    ),
+                    child: _ModernFloatingNavBar(
+                      selectedIndex: bottomIdx,
+                      onDestinationSelected: (i) => i == 3 ? _openMoreSheet(context) : context.push(_kPrimaryShellRoutes[i].path),
+                      items: [
+                        ..._kPrimaryShellRoutes.map((r) => _ModernNavItem(icon: r.icon, selectedIcon: r.selectedIcon, label: r.label)),
+                        const _ModernNavItem(icon: Icons.more_horiz_rounded, selectedIcon: Icons.apps_rounded, label: 'More'),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   PreferredSizeWidget _buildModernAppBar() {
+    final path = GoRouterState.of(context).uri.path;
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.white,
@@ -159,7 +168,11 @@ class _SuperAdminShellState extends ConsumerState<SuperAdminShell> {
             color: AppColors.primary.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.more_vert_rounded, color: AppColors.primary, size: 20),
+          child: const Icon(
+            Icons.more_vert_rounded, 
+            color: AppColors.primary, 
+            size: 20
+          ),
         ), 
         onPressed: () => _scaffoldKey.currentState?.openDrawer()
       ),
@@ -177,34 +190,45 @@ class _SuperAdminShellState extends ConsumerState<SuperAdminShell> {
   void _openMoreSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white, 
-          borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
-          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 40, offset: Offset(0, -10))],
-        ),
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 32),
-            GridView.count(
-              shrinkWrap: true,
-              crossAxisCount: 3,
-              mainAxisSpacing: 24,
-              crossAxisSpacing: 24,
-              children: _kSecondaryShellRoutes.map((r) => _MoreToolIcon(
-                route: r, 
-                onTap: () { 
-                  Navigator.pop(ctx); 
-                  context.go(r.path); 
-                }
-              )).toList(),
+      builder: (ctx) => ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white, 
+            borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 40, offset: Offset(0, -10))],
+          ),
+          padding: const EdgeInsets.all(32),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
+                const SizedBox(height: 32),
+                GridView.count(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 3,
+                  mainAxisSpacing: 24,
+                  crossAxisSpacing: 24,
+                  children: _kSecondaryShellRoutes.map((r) => _MoreToolIcon(
+                    route: r, 
+                    onTap: () { 
+                      Navigator.pop(ctx); 
+                      if (r.path == 'support') {
+                        showDialog(context: context, builder: (c) => const SupportDialog());
+                      } else {
+                        context.push(r.path); 
+                      }
+                    }
+                  )).toList(),
+                ),
+                const SizedBox(height: 32),
+              ],
             ),
-            const SizedBox(height: 32),
-          ],
+          ),
         ),
       ),
     );

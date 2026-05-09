@@ -89,6 +89,30 @@ exports.updateBusinessStatus = async (req, res) => {
   }
 };
 
+exports.getBusinessDetails = async (req, res) => {
+  try {
+    const business = await Business.findById(req.params.id);
+    if (!business) return res.status(404).json({ success: false, message: "Business not found" });
+
+    // Count products for this business
+    // Assuming Product model has businessId or storeId
+    const Product = require("../models/Product");
+    const productCount = await Product.countDocuments({ clientId: req.params.id });
+
+    res.status(200).json({ 
+      success: true, 
+      data: {
+        ...business.toJSON(),
+        stats: {
+          productCount
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 exports.updateBusiness = async (req, res) => {
   try {
     const business = await Business.findByIdAndUpdate(req.params.id, req.body, { new: true });

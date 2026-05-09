@@ -80,17 +80,13 @@ class _SaBusinessesScreenState extends State<SaBusinessesScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Text('Clients', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w900)),
-        actions: [
-          IconButton(
-            onPressed: _openAddBusiness,
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.add_rounded, color: AppColors.primary, size: 24),
-            ),
-          ),
-          const SizedBox(width: 16),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openAddBusiness,
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add_business_rounded, color: Colors.white),
+        label: const Text('Add Client', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       body: Column(
         children: [
@@ -196,17 +192,20 @@ class _BusinessModernCard extends StatelessWidget {
     final plan = business['subscriptionPlan'] ?? 'free';
     final id = business['id'] ?? business['_id'] ?? '';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: AppColors.shadowSubtle,
-        border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
+    return InkWell(
+      onTap: () => context.push('/super-admin/businesses/$id'),
+      borderRadius: BorderRadius.circular(32),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: AppColors.shadowSubtle,
+          border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -277,7 +276,8 @@ class _BusinessModernCard extends StatelessWidget {
               ),
             ],
           );
-        },
+          },
+        ),
       ),
     );
   }

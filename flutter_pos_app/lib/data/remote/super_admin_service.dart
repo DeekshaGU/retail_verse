@@ -558,4 +558,27 @@ class SuperAdminService {
     }
     return decoded['message']?.toString() ?? 'Fixed successfully';
   }
+
+  Future<Map<String, dynamic>> getBusinessDetails(String id) async {
+    final token = await _token();
+    final res = await _client
+        .get(
+          ApiResponseHandler.uri('${ApiEndpoints.superAdminBusinesses}/$id'),
+          headers: ApiResponseHandler.jsonHeaders(token: token),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    final decoded = ApiResponseHandler.decodeJsonResponse(
+      res,
+      action: 'get business details',
+    );
+    if (res.statusCode != 200) {
+      throw ApiResponseHandler.errorFromResponse(
+        res,
+        action: 'get business details',
+        decodedBody: decoded,
+      );
+    }
+    return decoded['data'] as Map<String, dynamic>;
+  }
 }
