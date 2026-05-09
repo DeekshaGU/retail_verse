@@ -40,33 +40,61 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // ── PREMIUM HEADER ─────────────────────────────
-          PremiumSearchHeader(
-            title: 'Platform Team',
-            actions: [
-              IconButton(
-                onPressed: _openCreateUserDialog,
-                icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white, size: 28),
+          // ── PREMIUM INTEGRATED HEADER ──────────────────
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E1B4B), Color(0xFF312E81)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ],
-            searchBar: Container(
-              height: 56,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
-              ),
-              child: TextField(
-                controller: _searchC,
-                onChanged: (v) => setState(() => _searchQ = v.trim().toLowerCase()),
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  hintText: 'Search members by name or email...',
-                  hintStyle: TextStyle(color: Colors.white60),
-                  prefixIcon: Icon(Icons.search_rounded, color: Colors.white70),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 16),
-                ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Teams', style: AppTypography.headlineSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+                      IconButton(
+                        onPressed: _openCreateUserDialog,
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.person_add_rounded, color: Colors.white, size: 24),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    ),
+                    child: TextField(
+                      controller: _searchC,
+                      onChanged: (v) => setState(() => _searchQ = v.trim().toLowerCase()),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Search by name or email...',
+                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                        prefixIcon: Icon(Icons.search_rounded, color: Colors.white.withOpacity(0.7)),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -76,7 +104,7 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
               future: _f,
               builder: (context, snap) {
                 if (snap.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                 }
                 if (snap.hasError) {
                   return Center(child: Text('Error: ${snap.error}'));
@@ -96,7 +124,7 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
                 return RefreshIndicator(
                   onRefresh: () async => setState(() => _f = _svc.listUsers()),
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
                     itemCount: filtered.length,
                     itemBuilder: (context, i) => _buildModernUserCard(filtered[i]),
                   ),
@@ -117,53 +145,83 @@ class _SaUsersScreenState extends State<SaUsersScreen> {
     final title = name.isEmpty ? email : name;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: AppColors.shadowSubtle,
         border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: AppColors.primary.withOpacity(0.08),
-            child: Text(
-              title.isNotEmpty ? title[0].toUpperCase() : '?',
-              style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 20),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900)),
-                Text(email, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
-                const SizedBox(height: 8),
-                Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: constraints.maxWidth > 300 ? 28 : 24,
+                  backgroundColor: AppColors.primary.withOpacity(0.08),
+                  child: Text(
+                    title.isNotEmpty ? title[0].toUpperCase() : '?',
+                    style: AppTypography.headlineSmall.copyWith(
+                      fontWeight: FontWeight.w900, 
+                      color: AppColors.primary,
+                      fontSize: constraints.maxWidth > 300 ? 24 : 18,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTag(role.toUpperCase(), AppColors.primary),
-                    const SizedBox(width: 8),
-                    _buildTag(active ? 'ACTIVE' : 'INACTIVE', active ? AppColors.success : AppColors.error),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(title, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                    ),
+                    Text(email, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildTag(role.toUpperCase(), AppColors.primary, Icons.verified_user_rounded),
+                        _buildTag(active ? 'ACTIVE' : 'INACTIVE', active ? AppColors.success : AppColors.error, active ? Icons.check_circle_rounded : Icons.cancel_rounded),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          _buildActionMenu(u, active, email),
-        ],
+              ),
+              _buildActionMenu(u, active, email),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTag(String text, Color color) {
+  Widget _buildTag(String text, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
-      child: Text(text, style: AppTypography.labelSmall.copyWith(color: color, fontWeight: FontWeight.bold, fontSize: 10)),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08), 
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 6),
+          Text(text, style: AppTypography.labelSmall.copyWith(color: color, fontWeight: FontWeight.w900, fontSize: 10)),
+        ],
+      ),
     );
   }
 

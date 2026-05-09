@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:retail_verse_pos/core/theme/app_colors.dart';
 import 'package:retail_verse_pos/core/theme/app_typography.dart';
 import 'package:retail_verse_pos/data/remote/super_admin_service.dart';
@@ -38,24 +39,33 @@ class _SaBusinessesScreenState extends State<SaBusinessesScreen> {
   }
 
   Future<void> _openAddBusiness() async {
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      builder: (ctx) => const _AddBusinessSheet(),
-    );
+    final saved = await context.push<bool>('/super-admin/businesses/add');
     if (!mounted) return;
     if (saved == true) {
       setState(() => _f = _loadData());
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Business created successfully'),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 24),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Success!', style: AppTypography.titleSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text('Business registered in ecosystem', style: AppTypography.bodySmall.copyWith(color: Colors.white.withOpacity(0.8))),
+                  ],
+                ),
+              ),
+            ],
+          ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -65,34 +75,43 @@ class _SaBusinessesScreenState extends State<SaBusinessesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text('Clients', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w900)),
+        actions: [
+          IconButton(
+            onPressed: _openAddBusiness,
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              child: const Icon(Icons.add_rounded, color: AppColors.primary, size: 24),
+            ),
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
       body: Column(
         children: [
-          // ── PREMIUM HEADER ─────────────────────────────
-          PremiumSearchHeader(
-            title: 'Platform Clients',
-            actions: [
-              IconButton(
-                onPressed: _openAddBusiness,
-                icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.white, size: 28),
-              ),
-            ],
-            searchBar: Container(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            child: Container(
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                boxShadow: AppColors.shadowSubtle,
+                border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
               ),
               child: TextField(
                 controller: _searchC,
                 onChanged: (v) => setState(() => _searchQ = v.trim().toLowerCase()),
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Search business name or ID...',
-                  hintStyle: const TextStyle(color: Colors.white60),
-                  prefixIcon: const Icon(Icons.search_rounded, color: Colors.white70),
+                decoration: const InputDecoration(
+                  hintText: 'Search business ecosystem...',
+                  prefixIcon: Icon(Icons.search_rounded, color: AppColors.textTertiary),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                  contentPadding: EdgeInsets.symmetric(vertical: 16),
                 ),
               ),
             ),
@@ -103,7 +122,7 @@ class _SaBusinessesScreenState extends State<SaBusinessesScreen> {
               future: _f,
               builder: (context, snap) {
                 if (snap.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                 }
                 if (snap.hasError) {
                   return Center(child: Text('Error: ${snap.error}'));
@@ -125,9 +144,13 @@ class _SaBusinessesScreenState extends State<SaBusinessesScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.business_rounded, size: 80, color: AppColors.textTertiary.withOpacity(0.2)),
-                        const SizedBox(height: 16),
-                        Text('No businesses found', style: AppTypography.headlineSmall.copyWith(color: AppColors.textTertiary)),
+                        Container(
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), shape: BoxShape.circle),
+                          child: Icon(Icons.business_rounded, size: 64, color: AppColors.primary.withOpacity(0.2)),
+                        ),
+                        const SizedBox(height: 24),
+                        Text('No businesses found', style: AppTypography.titleLarge.copyWith(color: AppColors.textTertiary, fontWeight: FontWeight.w900)),
                       ],
                     ),
                   );
@@ -136,11 +159,10 @@ class _SaBusinessesScreenState extends State<SaBusinessesScreen> {
                 return RefreshIndicator(
                   onRefresh: () async => setState(() => _f = _loadData()),
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final b = filtered[index];
-                      // Match domain logic
                       final bId = b['id']?.toString() ?? b['_id']?.toString() ?? '';
                       final domainObj = domains.cast<Map<String, dynamic>?>().firstWhere(
                         (d) => d?['businessId'] == bId,
@@ -172,85 +194,207 @@ class _BusinessModernCard extends StatelessWidget {
     final email = business['ownerEmail'] ?? '';
     final status = business['status'] ?? 'active';
     final plan = business['subscriptionPlan'] ?? 'free';
+    final id = business['id'] ?? business['_id'] ?? '';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: AppColors.shadowSubtle,
         border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(Icons.store_rounded, color: AppColors.primary, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    Text(
-                      owner,
-                      style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary),
+                    child: Icon(Icons.storefront_rounded, color: AppColors.primary, size: constraints.maxWidth > 300 ? 28 : 22),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(name, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(color: AppColors.textTertiary.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                              child: Text(
+                                'ID: RV-${id.toString().substring(id.toString().length - 6).toUpperCase()}',
+                                style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(owner, style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (val) {
+                      if (val == 'edit') _edit(context);
+                      if (val == 'delete') _delete(context);
+                    },
+                    icon: const Icon(Icons.more_vert_rounded, color: AppColors.textTertiary),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    itemBuilder: (ctx) => [
+                      const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_rounded, size: 18), SizedBox(width: 12), Text('Edit')])),
+                      const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_rounded, size: 18, color: Colors.red), SizedBox(width: 12), Text('Delete', style: TextStyle(color: Colors.red))])),
+                    ],
+                  ),
+                ],
               ),
-              _buildStatusBadge(status),
+              const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(height: 1, thickness: 1)),
+              if (email.isNotEmpty)
+                _buildInfoRow(Icons.alternate_email_rounded, email),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  _buildTag(plan.toUpperCase(), AppColors.primary, Icons.workspace_premium_rounded),
+                  if (domain != null)
+                    _buildTag(domain!['domain'], AppColors.success, Icons.language_rounded),
+                  _buildStatusBadge(status),
+                ],
+              ),
             ],
-          ),
-          const Divider(height: 32),
-          if (email.isNotEmpty)
-            _buildInfoRow(Icons.email_outlined, email),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _buildTag(plan.toUpperCase(), AppColors.primary),
-              const SizedBox(width: 8),
-              if (domain != null)
-                _buildTag(domain!['domain'], AppColors.success),
-            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _delete(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Business?'),
+        content: const Text('This will permanently remove the business and all its data. This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
+
+    if (ok == true) {
+      try {
+        final id = business['id'] ?? business['_id'] ?? '';
+        await SuperAdminService().deleteBusiness(id);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 24),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Deleted', style: AppTypography.titleSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                        Text('Business removed from database', style: AppTypography.bodySmall.copyWith(color: Colors.white.withOpacity(0.8))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(24),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+          );
+          // Trigger refresh
+          final state = context.findAncestorStateOfType<_SaBusinessesScreenState>();
+          state?.setState(() => state._f = state._loadData());
+        }
+      } catch (e) {
+        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Future<void> _edit(BuildContext context) async {
+    final updated = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      builder: (ctx) => _EditBusinessSheet(business: business),
+    );
+
+    if (updated == true) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.edit_note_rounded, color: Colors.white, size: 24),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Updated', style: AppTypography.titleSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                      Text('Client details saved successfully', style: AppTypography.bodySmall.copyWith(color: Colors.white.withOpacity(0.8))),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(24),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+        );
+        final state = context.findAncestorStateOfType<_SaBusinessesScreenState>();
+        state?.setState(() => state._f = state._loadData());
+      }
+    }
   }
 
   Widget _buildStatusBadge(String status) {
     final active = status.toLowerCase() == 'active';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: active ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         status.toUpperCase(),
         style: TextStyle(
           color: active ? AppColors.success : AppColors.error,
           fontSize: 10,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
         ),
       ),
     );
@@ -259,23 +403,28 @@ class _BusinessModernCard extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.textTertiary),
-        const SizedBox(width: 8),
-        Text(text, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
+        Icon(icon, size: 18, color: AppColors.textTertiary),
+        const SizedBox(width: 12),
+        Text(text, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
       ],
     );
   }
 
-  Widget _buildTag(String text, Color color) {
+  Widget _buildTag(String text, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.1)),
       ),
-      child: Text(
-        text,
-        style: AppTypography.labelSmall.copyWith(color: color, fontWeight: FontWeight.bold),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 8),
+          Text(text, style: AppTypography.labelSmall.copyWith(color: color, fontWeight: FontWeight.w900)),
+        ],
       ),
     );
   }
@@ -349,7 +498,112 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                child: _saving ? const CircularProgressIndicator(color: Colors.white) : const Text('Save Business', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: _saving ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Save Business', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildField(TextEditingController controller, String label, IconData icon, {bool required = false}) {
+    return TextFormField(
+      controller: controller,
+      validator: required ? (v) => v!.isEmpty ? 'Required' : null : null,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: AppColors.backgroundSecondary.withOpacity(0.5),
+      ),
+    );
+  }
+}
+
+class _EditBusinessSheet extends StatefulWidget {
+  final Map<String, dynamic> business;
+  const _EditBusinessSheet({required this.business});
+
+  @override
+  State<_EditBusinessSheet> createState() => _EditBusinessSheetState();
+}
+
+class _EditBusinessSheetState extends State<_EditBusinessSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _name;
+  late TextEditingController _owner;
+  late TextEditingController _email;
+  late TextEditingController _phone;
+  final _svc = SuperAdminService();
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _name = TextEditingController(text: widget.business['businessName']);
+    _owner = TextEditingController(text: widget.business['ownerName']);
+    _email = TextEditingController(text: widget.business['ownerEmail']);
+    _phone = TextEditingController(text: widget.business['phone']);
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _owner.dispose();
+    _email.dispose();
+    _phone.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    try {
+      final id = widget.business['id'] ?? widget.business['_id'] ?? '';
+      await _svc.updateBusiness(id, {
+        'businessName': _name.text,
+        'ownerName': _owner.text,
+        'ownerEmail': _email.text,
+        'phone': _phone.text,
+      });
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 8, 24, MediaQuery.of(context).viewInsets.bottom + 24),
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Edit Client', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w900)),
+              const SizedBox(height: 24),
+              _buildField(_name, 'Business Name', Icons.business_rounded, required: true),
+              const SizedBox(height: 16),
+              _buildField(_owner, 'Owner Name', Icons.person_outline_rounded),
+              const SizedBox(height: 16),
+              _buildField(_email, 'Owner Email', Icons.email_outlined),
+              const SizedBox(height: 16),
+              _buildField(_phone, 'Phone Number', Icons.phone_outlined),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _saving ? null : _save,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: _saving ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Update Business', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),

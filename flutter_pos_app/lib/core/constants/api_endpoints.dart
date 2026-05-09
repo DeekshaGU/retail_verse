@@ -183,6 +183,7 @@ class ApiEndpoints {
   static const String superAdminAnalyticsSummary = '/super-admin/analytics/summary';
   static const String superAdminAuditLogs = '/super-admin/audit-logs';
   static const String superAdminCustomDomains = '/super-admin/custom-domains';
+  static const String superAdminTopPerformance = '/super-admin/performance/top-stores';
 
   // Razorpay and Support
   static const String razorpayCreateOrder = '/payments/razorpay/create-order';

@@ -105,61 +105,90 @@ class _SaCustomDomainsScreenState extends ConsumerState<SaCustomDomainsScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // ── PREMIUM HEADER ─────────────────────────────
-          PremiumSearchHeader(
-            title: 'Custom Domains',
-            searchBar: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+          // ── PREMIUM INTEGRATED HEADER ──────────────────
+          Container(
+            padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 24, 24, 32),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E1B4B), Color(0xFF312E81)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.language_rounded, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'White-label Management',
-                      style: AppTypography.bodyMedium.copyWith(color: Colors.white70),
-                    ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Domain Manager', style: AppTypography.headlineSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
                   ),
-                ],
-              ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                        child: const Icon(Icons.language_rounded, color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Platform White-label Infrastructure',
+                          style: AppTypography.bodyMedium.copyWith(color: Colors.white.withOpacity(0.7), fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 
           Expanded(
             child: _isLoading 
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
               : RefreshIndicator(
                   onRefresh: _loadData,
                   child: ListView(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
                     children: [
                       _buildConnectCard(),
                       if (_lastAddedDomain != null) ...[
                         const SizedBox(height: 24),
                         _buildDnsInstructionCard(_lastAddedDomain!),
                       ],
-                      const SizedBox(height: 32),
-                      Text(
-                        'Connected Domains',
-                        style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900),
+                      const SizedBox(height: 40),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Active Infrastructure', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                          _buildBadge(_domains.length.toString(), AppColors.primary),
+                        ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       if (_domains.isEmpty)
                         _buildEmptyState()
                       else
                         ..._domains.map((d) => _buildModernDomainCard(d)),
-                      const SizedBox(height: 100),
                     ],
                   ),
                 ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+      child: Text(text, style: AppTypography.labelSmall.copyWith(color: color, fontWeight: FontWeight.w900)),
     );
   }
 

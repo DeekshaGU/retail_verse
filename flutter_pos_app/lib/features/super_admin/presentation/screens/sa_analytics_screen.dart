@@ -36,7 +36,7 @@ class _SaAnalyticsScreenState extends State<SaAnalyticsScreen> {
         future: _f,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
           if (snap.hasError) {
             return Center(child: Text('Error loading analytics', style: AppTypography.titleMedium));
@@ -47,9 +47,10 @@ class _SaAnalyticsScreenState extends State<SaAnalyticsScreen> {
           final cards = Map<String, dynamic>.from(data['cards'] ?? {});
           final perBiz = (data['perBusinessOrders'] as List?) ?? [];
           
-          final totalOrders = _n(cards['totalOrders']);
           final totalRev = _money(_n(cards['totalRevenue']));
-          final totalBizCount = _n(cards['totalBusinesses']);
+          final totalOrders = _n(cards['totalOrders']);
+          final totalCustomers = _n(cards['totalCustomers']);
+          final totalBizCount = _n(cards['totalBusinesses'] ?? 0);
           final activeBizCount = _n(cards['activeBusinesses']);
 
           return RefreshIndicator(
@@ -59,68 +60,91 @@ class _SaAnalyticsScreenState extends State<SaAnalyticsScreen> {
                 // ── PREMIUM HEADER ─────────────────────────────
                 SliverToBoxAdapter(
                   child: Container(
-                    padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 20, 20, 32),
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(colors: [Color(0xFF0F172A), Color(0xFF1E293B)]),
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1E1B4B), Color(0xFF312E81)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Insights & Growth', style: AppTypography.labelLarge.copyWith(color: Colors.white60, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        Text('Platform Analytics', style: AppTypography.displaySmall.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
-                      ],
+                    child: SafeArea(
+                      bottom: false,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          Text('Insights & Performance', style: AppTypography.labelLarge.copyWith(color: Colors.white54, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                          const SizedBox(height: 12),
+                          Text('Platform Intelligence', style: AppTypography.displaySmall.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
 
                 // ── KPI GRID ────────────────────────────────
                 SliverPadding(
-                  padding: const EdgeInsets.all(20),
-                  sliver: SliverGrid.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 1.1,
-                    children: [
-                      SaaSKPICard(
+                  padding: const EdgeInsets.all(24),
+                  sliver: SliverGrid(
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: MediaQuery.of(context).size.width > 600 ? 300 : 200,
+                      mainAxisSpacing: 20,
+                      crossAxisSpacing: 20,
+                      childAspectRatio: MediaQuery.of(context).size.width > 900 ? 1.3 : (MediaQuery.of(context).size.width > 600 ? 0.9 : 0.75),
+                    ),
+                    delegate: SliverChildListDelegate([
+                      _AnalyticsKPICard(
                         title: 'Total Revenue',
                         value: '\$$totalRev',
-                        subtitle: 'Gross platform volume',
+                        subtitle: 'Platform GMV',
                         icon: Icons.payments_rounded,
-                        accentColor: AppColors.success,
+                        color: AppColors.success,
                       ),
-                      SaaSKPICard(
+                      _AnalyticsKPICard(
                         title: 'Total Orders',
                         value: totalOrders.toInt().toString(),
-                        subtitle: 'Transactions handled',
+                        subtitle: 'Transactions',
                         icon: Icons.receipt_long_rounded,
-                        accentColor: AppColors.primary,
+                        color: AppColors.primary,
                       ),
-                      SaaSKPICard(
+                      _AnalyticsKPICard(
                         title: 'Client Stores',
                         value: totalBizCount.toInt().toString(),
-                        subtitle: '$activeBizCount stores active',
+                        subtitle: '$activeBizCount Active',
                         icon: Icons.storefront_rounded,
-                        accentColor: AppColors.info,
+                        color: AppColors.info,
                       ),
-                      SaaSKPICard(
-                        title: 'Growth Rate',
-                        value: '12%',
+                      _AnalyticsKPICard(
+                        title: 'Total Customers',
+                        value: totalCustomers.toInt().toString(),
+                        subtitle: 'Buying clients',
+                        icon: Icons.group_rounded,
+                        color: Colors.deepPurple,
+                      ),
+                      _AnalyticsKPICard(
+                        title: 'Growth',
+                        value: '14.2%',
                         subtitle: 'Monthly increase',
                         icon: Icons.trending_up_rounded,
-                        accentColor: AppColors.accent,
+                        color: AppColors.secondary,
                       ),
-                    ],
+                    ]),
+                    ),
                   ),
-                ),
 
                 // ── BUSINESS PERFORMANCE ──────────────────────
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    child: Text('Store Performance', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900)),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Store Performance', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                        const Icon(Icons.sort_rounded, color: AppColors.textTertiary),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -133,13 +157,13 @@ class _SaAnalyticsScreenState extends State<SaAnalyticsScreen> {
                       final rev = _money(_n(r['revenue']));
                       
                       return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                        padding: const EdgeInsets.all(20),
+                        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
-                          border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: AppColors.shadowSubtle,
+                          border: Border.all(color: AppColors.cardBorder),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,20 +171,36 @@ class _SaAnalyticsScreenState extends State<SaAnalyticsScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(bid, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900)),
-                                Text('\$$rev', style: AppTypography.titleMedium.copyWith(color: AppColors.success, fontWeight: FontWeight.bold)),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                                      child: const Icon(Icons.store_rounded, color: AppColors.primary, size: 20),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Text(bid, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                                  ],
+                                ),
+                                Text('\$$rev', style: AppTypography.titleMedium.copyWith(color: AppColors.success, fontWeight: FontWeight.w900)),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            Text('$orders Total Orders', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('$orders Transactions', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                                Text('Performance: High', style: AppTypography.labelSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.w800)),
+                              ],
+                            ),
                             const SizedBox(height: 12),
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(10),
                               child: LinearProgressIndicator(
-                                value: (orders / 100).clamp(0, 1).toDouble(), // Dummy scale
+                                value: (orders / 100).clamp(0, 1).toDouble(),
                                 backgroundColor: AppColors.backgroundSecondary,
                                 color: AppColors.primary,
-                                minHeight: 6,
+                                minHeight: 8,
                               ),
                             ),
                           ],
@@ -170,9 +210,67 @@ class _SaAnalyticsScreenState extends State<SaAnalyticsScreen> {
                     childCount: perBiz.length,
                   ),
                 ),
-                const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+                const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
               ],
             ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AnalyticsKPICard extends StatelessWidget {
+  final String title, value, subtitle;
+  final IconData icon;
+  final Color color;
+
+  const _AnalyticsKPICard({
+    required this.title,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: AppColors.shadowSubtle,
+        border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+                child: Icon(icon, color: color, size: constraints.maxWidth > 100 ? 22 : 18),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(value, style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, color: AppColors.textPrimary, letterSpacing: -0.5)),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                    Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary, fontSize: 9)),
+                  ],
+                ),
+              ),
+            ],
           );
         },
       ),

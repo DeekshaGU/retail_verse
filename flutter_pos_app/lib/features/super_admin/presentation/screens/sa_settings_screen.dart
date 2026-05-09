@@ -33,76 +33,94 @@ class SaSettingsScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // ── PREMIUM HEADER ─────────────────────────────
-          PremiumSearchHeader(
-            title: 'System Settings',
-            searchBar: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+          // ── PREMIUM INTEGRATED HEADER ──────────────────
+          Container(
+            padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 24, 24, 32),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E1B4B), Color(0xFF312E81)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.settings_suggest_rounded, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Global Platform Preferences',
-                      style: AppTypography.bodyMedium.copyWith(color: Colors.white70),
-                    ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Platform Settings', style: AppTypography.headlineSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
                   ),
-                ],
-              ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                        child: const Icon(Icons.settings_suggest_rounded, color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Global Administration Center',
+                          style: AppTypography.bodyMedium.copyWith(color: Colors.white.withOpacity(0.7), fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
               children: [
-                _buildSectionTitle('App Redirection'),
+                _buildSectionTitle('Platform Redirection'),
                 _buildSettingsCard([
                   _SettingsTile(
                     icon: Icons.person_rounded,
                     title: 'Account & Profile',
-                    subtitle: 'Manage your personal credentials',
+                    subtitle: 'Manage your enterprise credentials',
                     onTap: () => context.go('/account'),
                   ),
                   _SettingsTile(
                     icon: Icons.dashboard_customize_rounded,
-                    title: 'Business POS View',
-                    subtitle: 'Switch to the store dashboard',
+                    title: 'Client Dashboard View',
+                    subtitle: 'Switch to a specific store environment',
                     onTap: () => context.go('/dashboard'),
                   ),
                   _SettingsTile(
                     icon: Icons.tune_rounded,
-                    title: 'Global Preferences',
-                    subtitle: 'API, Theme & Sync settings',
+                    title: 'System Preferences',
+                    subtitle: 'Internal API & Theme overrides',
                     onTap: () => context.go('/settings'),
                   ),
                 ]),
-                const SizedBox(height: 32),
-                _buildSectionTitle('System Management'),
+                const SizedBox(height: 40),
+                _buildSectionTitle('Advanced Operations'),
                 _buildSettingsCard([
                   _SettingsTile(
                     icon: Icons.notifications_active_rounded,
-                    title: 'Broadcast Alerts',
-                    subtitle: 'Send platform-wide notifications',
+                    title: 'Emergency Broadcast',
+                    subtitle: 'Push notifications to all clients',
                     enabled: false,
                     onTap: () {},
                   ),
                   _SettingsTile(
                     icon: Icons.security_rounded,
-                    title: 'Security Audit',
-                    subtitle: 'View global access logs',
+                    title: 'System Health Audit',
+                    subtitle: 'Infrastructure & security logs',
                     onTap: () {},
                   ),
                 ]),
-                const SizedBox(height: 40),
+                const SizedBox(height: 48),
                 _buildLogoutButton(context, ref),
-                const SizedBox(height: 100),
               ],
             ),
           ),

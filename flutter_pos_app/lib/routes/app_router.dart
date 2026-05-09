@@ -34,6 +34,8 @@ import '../features/super_admin/presentation/screens/sa_analytics_screen.dart';
 import '../features/super_admin/presentation/screens/sa_settings_screen.dart';
 import '../features/super_admin/presentation/screens/sa_custom_domains_screen.dart';
 import '../features/super_admin/presentation/screens/sa_logs_screen.dart';
+import '../features/super_admin/presentation/screens/sa_stores_performance_screen.dart';
+import '../features/super_admin/presentation/screens/sa_add_business_screen.dart';
 import '../features/dashboard/presentation/widgets/dashboard_widgets.dart';
 import '../features/dashboard/presentation/screens/sales_details_screen.dart';
 import '../features/dashboard/presentation/screens/avg_sale_details_screen.dart';
@@ -99,7 +101,15 @@ final GoRouter appRouter = GoRouter(
           path: '/super-admin/logs',
           builder: (context, state) => const SaLogsScreen(),
         ),
+        GoRoute(
+          path: '/super-admin/stores-performance',
+          builder: (context, state) => const SaStoresPerformanceScreen(),
+        ),
       ],
+    ),
+    GoRoute(
+      path: '/super-admin/businesses/add',
+      builder: (context, state) => const SaAddBusinessScreen(),
     ),
 
     ShellRoute(

@@ -74,22 +74,28 @@ class SuperAdminService {
     String subscriptionStatus = 'active',
   }) async {
     final token = await _token();
+    final url = ApiResponseHandler.uri(ApiEndpoints.superAdminBusinesses);
+    final body = jsonEncode({
+      'businessName': businessName.trim(),
+      'ownerName': ownerName.trim(),
+      'ownerEmail': ownerEmail.trim(),
+      'phone': phone.trim(),
+      'address': address.trim(),
+      'businessType': businessType.trim(),
+      'notes': notes.trim(),
+      'status': status.trim().toLowerCase(),
+      'subscriptionPlan': subscriptionPlan.trim().toLowerCase(),
+      'subscriptionStatus': subscriptionStatus.trim().toLowerCase(),
+    });
+
+    print('SUPER ADMIN ACTION: POST $url');
+    print('BODY: $body');
+
     final res = await _client
         .post(
-          ApiResponseHandler.uri(ApiEndpoints.superAdminBusinesses),
+          url,
           headers: ApiResponseHandler.jsonHeaders(token: token),
-          body: jsonEncode({
-            'businessName': businessName.trim(),
-            'ownerName': ownerName.trim(),
-            'ownerEmail': ownerEmail.trim(),
-            'phone': phone.trim(),
-            'address': address.trim(),
-            'businessType': businessType.trim(),
-            'notes': notes.trim(),
-            'status': status.trim().toLowerCase(),
-            'subscriptionPlan': subscriptionPlan.trim().toLowerCase(),
-            'subscriptionStatus': subscriptionStatus.trim().toLowerCase(),
-          }),
+          body: body,
         )
         .timeout(const Duration(seconds: 20));
 
@@ -104,6 +110,76 @@ class SuperAdminService {
         decodedBody: decoded,
       );
     }
+  }
+
+  Future<void> updateBusiness(String id, Map<String, dynamic> data) async {
+    final token = await _token();
+    final res = await _client
+        .put(
+          ApiResponseHandler.uri('${ApiEndpoints.superAdminBusinesses}/$id'),
+          headers: ApiResponseHandler.jsonHeaders(token: token),
+          body: jsonEncode(data),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    final decoded = ApiResponseHandler.decodeJsonResponse(
+      res,
+      action: 'update business',
+    );
+    if (res.statusCode != 200) {
+      throw ApiResponseHandler.errorFromResponse(
+        res,
+        action: 'update business',
+        decodedBody: decoded,
+      );
+    }
+  }
+
+  Future<void> deleteBusiness(String id) async {
+    final token = await _token();
+    final res = await _client
+        .delete(
+          ApiResponseHandler.uri('${ApiEndpoints.superAdminBusinesses}/$id'),
+          headers: ApiResponseHandler.jsonHeaders(token: token),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    final decoded = ApiResponseHandler.decodeJsonResponse(
+      res,
+      action: 'delete business',
+    );
+    if (res.statusCode != 200) {
+      throw ApiResponseHandler.errorFromResponse(
+        res,
+        action: 'delete business',
+        decodedBody: decoded,
+      );
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getTopPerformanceStores() async {
+    final token = await _token();
+    final res = await _client
+        .get(
+          ApiResponseHandler.uri(ApiEndpoints.superAdminTopPerformance),
+          headers: ApiResponseHandler.jsonHeaders(token: token),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    final decoded = ApiResponseHandler.decodeJsonResponse(
+      res,
+      action: 'load top performance stores',
+    );
+    if (res.statusCode != 200) {
+      throw ApiResponseHandler.errorFromResponse(
+        res,
+        action: 'load top performance stores',
+        decodedBody: decoded,
+      );
+    }
+    final data = (decoded as Map)['data'];
+    if (data is! List) return [];
+    return data.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
   }
 
   Future<List<Map<String, dynamic>>> listUsers({String? businessId}) async {

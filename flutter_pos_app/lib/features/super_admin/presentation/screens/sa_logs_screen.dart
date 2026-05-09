@@ -27,28 +27,47 @@ class _SaLogsScreenState extends State<SaLogsScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // ── PREMIUM HEADER ─────────────────────────────
-          PremiumSearchHeader(
-            title: 'Audit Logs',
-            searchBar: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+          // ── PREMIUM INTEGRATED HEADER ──────────────────
+          Container(
+            padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 24, 24, 32),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E1B4B), Color(0xFF312E81)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.history_toggle_off_rounded, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Monitoring Global Activity',
-                      style: AppTypography.bodyMedium.copyWith(color: Colors.white70),
-                    ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Platform Audit', style: AppTypography.headlineSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
                   ),
-                ],
-              ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                        child: const Icon(Icons.history_toggle_off_rounded, color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Monitoring Enterprise Activity',
+                          style: AppTypography.bodyMedium.copyWith(color: Colors.white.withOpacity(0.7), fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -57,7 +76,7 @@ class _SaLogsScreenState extends State<SaLogsScreen> {
               future: _f,
               builder: (context, snap) {
                 if (snap.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                 }
                 if (snap.hasError) {
                   return Center(child: Text('Error: ${snap.error}'));
@@ -71,7 +90,7 @@ class _SaLogsScreenState extends State<SaLogsScreen> {
                 return RefreshIndicator(
                   onRefresh: () async => setState(() => _f = _svc.listAuditLogs(limit: 100)),
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
                     itemCount: items.length,
                     itemBuilder: (context, i) => _buildModernLogTile(items[i]),
                   ),

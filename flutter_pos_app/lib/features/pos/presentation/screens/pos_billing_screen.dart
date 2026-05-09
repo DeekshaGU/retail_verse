@@ -1136,9 +1136,8 @@ class _PosBillingScreenState extends ConsumerState<PosBillingScreen> {
     const radius = 14.0;
 
     return Material(
-      color: Colors.white,
       elevation: isOutOfStock ? 0 : 1,
-      shadowColor: AppColors.shadowMedium,
+      shadowColor: AppColors.shadowColor,
       borderRadius: BorderRadius.circular(radius),
       child: InkWell(
         onTap: () => _openProductDetail(product),

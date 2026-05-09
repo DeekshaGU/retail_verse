@@ -16,7 +16,10 @@ const {
   verifyCustomDomain,
   activateCustomDomain,
   deleteCustomDomain,
-  getAuditLogs
+  getAuditLogs,
+  getTopPerformanceStores,
+  updateBusiness,
+  deleteBusiness
 } = require("../controllers/superadminController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -27,10 +30,13 @@ router.get("/health", (req, res) => res.json({ status: "Super Admin API is healt
 // Stats & Analytics
 router.get("/stats", protect, getDashboardStats);
 router.get("/analytics/summary", protect, getAnalyticsSummary);
+router.get("/performance/top-stores", protect, getTopPerformanceStores);
 
 // Businesses
 router.get("/businesses", protect, getAllBusinesses);
 router.post("/businesses", protect, createBusiness);
+router.put("/businesses/:id", protect, updateBusiness);
+router.delete("/businesses/:id", protect, deleteBusiness);
 router.put("/businesses/:id/status", protect, updateBusinessStatus);
 
 // Users (Platform Level)
