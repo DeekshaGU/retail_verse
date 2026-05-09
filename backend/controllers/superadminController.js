@@ -313,12 +313,3 @@ exports.fixBusinessesData = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-exports.dropBadIndex = async (req, res) => {
-  try {
-    await Business.collection.dropIndex("businessId_1");
-    res.status(200).json({ success: true, message: "Index dropped successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};

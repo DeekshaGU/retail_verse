@@ -49,6 +49,8 @@ const businessSchema = new mongoose.Schema(
     },
     businessId: {
       type: String,
+      unique: true,
+      sparse: true,
       trim: true,
     },
   },
