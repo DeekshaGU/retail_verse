@@ -47,19 +47,28 @@ const businessSchema = new mongoose.Schema(
       enum: ["active", "expired"],
       default: "active",
     },
+    businessId: {
+      type: String,
+      unique: true,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
 
-// Map the _id to businessId for ease of use in the frontend
-businessSchema.virtual('businessId').get(function() {
-  return this._id.toHexString();
+// Auto-generate businessId if not present
+businessSchema.pre('save', function(next) {
+  if (!this.businessId) {
+    const random = Math.floor(100000 + Math.random() * 900000);
+    this.businessId = `RV-${random}`;
+  }
+  next();
 });
 
 businessSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, ret) => {
-    delete ret._id;
+    if (ret._id) ret.id = ret._id.toString();
     delete ret.__v;
   }
 });

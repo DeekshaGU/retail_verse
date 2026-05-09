@@ -298,3 +298,18 @@ exports.getTopPerformanceStores = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+exports.fixBusinessesData = async (req, res) => {
+  try {
+    const businesses = await Business.find({ $or: [{ businessId: null }, { businessId: { $exists: false } }] });
+    let count = 0;
+    for (const b of businesses) {
+      const random = Math.floor(100000 + Math.random() * 900000);
+      b.businessId = `RV-${random}`;
+      await b.save();
+      count++;
+    }
+    res.status(200).json({ success: true, message: `Fixed ${count} businesses` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

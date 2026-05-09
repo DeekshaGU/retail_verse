@@ -1,4 +1,3 @@
-const express = require("express");
 const { getDashboardStats, getRecentActivities, getCustomers, addCustomer } = require("../controllers/dashboardController");
 const { protect } = require("../middleware/authMiddleware");
 

@@ -19,11 +19,15 @@ const {
   getAuditLogs,
   getTopPerformanceStores,
   updateBusiness,
-  deleteBusiness
+  deleteBusiness,
+  fixBusinessesData
 } = require("../controllers/superadminController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+// ... existing routes ...
+router.get("/fix-data", protect, fixBusinessesData);
 
 router.get("/health", (req, res) => res.json({ status: "Super Admin API is healthy" }));
 
