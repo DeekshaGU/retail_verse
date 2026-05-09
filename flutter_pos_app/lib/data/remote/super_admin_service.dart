@@ -114,9 +114,11 @@ class SuperAdminService {
 
   Future<void> updateBusiness(String id, Map<String, dynamic> data) async {
     final token = await _token();
+    final url = ApiResponseHandler.uri('${ApiEndpoints.superAdminBusinesses}/$id');
+    print('SUPER ADMIN ACTION: PUT $url');
     final res = await _client
         .put(
-          ApiResponseHandler.uri('${ApiEndpoints.superAdminBusinesses}/$id'),
+          url,
           headers: ApiResponseHandler.jsonHeaders(token: token),
           body: jsonEncode(data),
         )
@@ -137,9 +139,11 @@ class SuperAdminService {
 
   Future<void> deleteBusiness(String id) async {
     final token = await _token();
+    final url = ApiResponseHandler.uri('${ApiEndpoints.superAdminBusinesses}/$id');
+    print('SUPER ADMIN ACTION: DELETE $url');
     final res = await _client
         .delete(
-          ApiResponseHandler.uri('${ApiEndpoints.superAdminBusinesses}/$id'),
+          url,
           headers: ApiResponseHandler.jsonHeaders(token: token),
         )
         .timeout(const Duration(seconds: 20));
