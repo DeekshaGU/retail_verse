@@ -32,20 +32,80 @@ exports.getDashboardStats = async (req, res) => {
 
 exports.getAnalyticsSummary = async (req, res) => {
   try {
+    const Order = require("../models/Order");
+    const Business = require("../models/Business");
+    const User = require("../models/User");
+
+    // 1. Total Metrics
     const totalBusinesses = await Business.countDocuments();
     const activeBusinesses = await Business.countDocuments({ status: "active" });
-    const recentBusinesses = await Business.find().sort({ createdAt: -1 }).limit(20);
     
+    const orderStats = await Order.aggregate([
+      { $group: { _id: null, totalRevenue: { $sum: "$total" }, totalOrders: { $sum: 1 } } }
+    ]);
+    
+    const totalRevenue = orderStats.length > 0 ? orderStats[0].totalRevenue : 0;
+    const totalOrders = orderStats.length > 0 ? orderStats[0].totalOrders : 0;
+    const totalCustomers = await User.countDocuments({ role: "customer" });
+
+    // 2. Order Trends (Last 30 Days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const dailyTrends = await Order.aggregate([
+      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          orders: { $sum: 1 },
+          revenue: { $sum: "$total" }
+        }
+      },
+      { $sort: { "_id": 1 } }
+    ]);
+
+    // 3. Business Distribution (for Pie Chart)
+    const bizDistribution = await Business.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } }
+    ]);
+
+    // 4. Per Business Performance
+    const perBusinessOrders = await Order.aggregate([
+      { $group: { _id: "$clientId", orders: { $sum: 1 }, revenue: { $sum: "$total" } } },
+      { $sort: { revenue: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: "businesses",
+          localField: "_id",
+          foreignField: "_id",
+          as: "bizInfo"
+        }
+      },
+      { $unwind: "$bizInfo" },
+      {
+        $project: {
+          businessId: "$bizInfo.businessName",
+          orders: 1,
+          revenue: 1
+        }
+      }
+    ]);
+
     res.status(200).json({
       success: true,
       data: {
         cards: {
           totalBusinesses,
           activeBusinesses,
-          newBusinessesThisMonth: 0,
-          churnRate: "0.0%"
+          totalRevenue,
+          totalOrders,
+          totalCustomers,
+          growthRate: "12.5%" // Mocked for now
         },
-        recentBusinesses
+        trends: dailyTrends,
+        distribution: bizDistribution,
+        perBusinessOrders
       }
     });
   } catch (error) {
